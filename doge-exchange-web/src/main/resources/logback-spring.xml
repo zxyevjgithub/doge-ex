@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration scan="true">
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [%X{TRACE_LOG_ID}] %msg%n</pattern>
+        </layout>
+    </appender>
+
+    <property name="log_dir" value="/var/logs/spring-log/"/>
+    <springProperty name="app_name" source="spring.application.name"/>
+    <springProperty name="app_port" source="server.port"/>
+    <property name="version" value="1.0"/>
+    <!-- <springProperty name="version"  source="info.project.version"/> -->
+
+    <appender name="aiInfoFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <maxHistory>1</maxHistory>
+            <fileNamePattern>${log_dir}aiInfo-%d.log</fileNamePattern>
+        </rollingPolicy>
+        <encoder charset="UTF-8">
+            <pattern>{"app_name":"${app_name}","app_port":"${app_port}","version":"${version}","@timestamp":
+                "%d{yyyy-MM-dd'T'HH:mm:ssXXX}","level": "%level","message": "%m","logger_name": "aiInfo"}\n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger name="aiInfo" level="INFO" additivity="false">
+        <appender-ref ref="aiInfoFILE"/>
+
+
+    </logger>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log_dir}log.log</file>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <customFields>
+                {
+                "app_name":"${app_name}",
+                "app_port":"${app_port}",
+                "version":"${version}"
+                }
+            </customFields>
+            <enableContextMap>false</enableContextMap>
+        </encoder>
+        <!--<encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <mdc>TRACE_LOG_ID</mdc>
+            </providers>
+        </encoder>-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${log_dir}/mv_temp/log-%i.log</fileNamePattern>
+        </rollingPolicy>
+        <triggeringPolicy
+                class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <MaxFileSize>100MB</MaxFileSize>
+        </triggeringPolicy>
+    </appender>
+    <appender name="async_file" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <queueSize>512</queueSize>
+        <appender-ref ref="FILE"/>
+    </appender>
+
+    <root level="debug">
+        <appender-ref ref="async_file"/>
+        <appender-ref ref="STDOUT"/>  <!--  发布需注释 -->
+    </root>
+
+    <logger level="INFO" name="com.ibatis"/>
+    <logger level="INFO" name="org.springframework"/>
+    <logger level="INFO" name="java.sql"/>
+    <logger level="INFO" name="org.apache"/>
+    <logger level="INFO" name="org.I0Itec"/>
+    <logger level="INFO" name="org.dozer"/>
+
+
+    <appender name="dashboardFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${log_dir}dashboard-%d.log</fileNamePattern>
+        </rollingPolicy>
+        <encoder charset="UTF-8">
+            <pattern>{"app_name":"${app_name}","app_port":"${app_port}","version":"${version}","@timestamp":
+                "%d{yyyy-MM-dd'T'HH:mm:ssXXX}","level": "%level","message": "%m","logger_name": "GaugeLog"}\n
+            </pattern>
+        </encoder>
+    </appender>
+    <logger name="GaugeLog" level="INFO" additivity="false">
+        <appender-ref ref="dashboardFILE"/>
+    </logger>
+
+</configuration>

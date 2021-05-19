@@ -1,0 +1,7 @@
+快速设置版本命令：
+设置：
+mvn versions:set -DnewVersion=1.7.1-SNAPSHOT
+确认设置：
+mvn versions:commit
+免确认设置：
+mvn versions:set -DgenerateBackupPoms=false -DnewVersion=1.0.0-SNAPSHOT
